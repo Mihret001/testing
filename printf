@@ -1,0 +1,66 @@
+#include "main.h"
+
+void print_buffer(char buffer[], int *buff_ind);
+
+/**
+ * _printf - serves as a printf function
+ * @formatted: format.
+ * Return: Printed chars.
+ */
+int _printf(const char *formatted, ...)
+{
+	int x, printed = 0, printed_chars = 0;
+	int activeFlags, width, precision, size, buff_ind = 0;
+	va_list Lists;
+	char buffer[BUFF_SIZE];
+
+	if (formatted == NULL)
+		return (-1);
+
+	va_start(Lists, formatted);
+
+	for (x = 0; formatted && formatted[x] != '\0'; x++)
+	{
+		if (formatted[x] != '%')
+		{
+			buffer[buff_ind++] = formatted[x];
+			if (buff_ind == BUFF_SIZE)
+				print_buffer(buffer, &buff_ind);
+			/* write(1, &formatted[x], 1);*/
+			printed_chars++;
+		}
+		else
+		{
+			print_buffer(buffer, &buff_ind);
+			activeFlags = get_flags(formatted, &x);
+			width = get_width(formatted, &x, Lists);
+			precision = get_precision(formatted, &x, Lists);
+			size = get_size(formatted, &x);
+			++x;
+			printed = handle_print(formatted, &x, Lists, buffer,
+				activeFlags, width, precision, size);
+			if (printed == -1)
+				return (-1);
+			printed_chars += printed;
+		}
+	}
+
+	print_buffer(buffer, &buff_ind);
+
+	va_end(Lists);
+
+	return (printed_chars);
+}
+
+/**
+ * print_buffer - Prints the contents of buffer
+ * @buffer:an array of chars
+ * @buff_ind: Index that represents the length.
+ */
+void print_buffer(char buffer[], int *buff_ind)
+{
+	if (*buff_ind > 0)
+		write(1, &buffer[0], *buff_ind);
+
+	*buff_ind = 0;
+}
